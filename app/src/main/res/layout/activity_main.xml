@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity"
+    android:orientation="vertical"
+    >
+
+    <TextView
+        android:id="@+id/tv0"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Hello World!"
+        android:textSize = "30sp"/>
+
+    <Button
+        android:id="@+id/bt0"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text = "updateText" />
+
+    <Button
+        android:id="@+id/bt1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text = "doing hook!" />
+
+    <Button
+        android:id="@+id/bt2_tregethookRet"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text = "treger" />
+
+</LinearLayout>
