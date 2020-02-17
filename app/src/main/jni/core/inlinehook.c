@@ -294,3 +294,9 @@ void * GetModuleBaseAddr(pid_t pid, char* pszModuleName)
     fclose(pFileMaps);
     return (void *)ulBaseValue;
 }
+
+//bool registerHook(HOOKINFO *hookinfo){
+//
+//
+//
+//}

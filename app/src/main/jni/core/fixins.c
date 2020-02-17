@@ -4,10 +4,10 @@
 
 #include <include/shared.h>
 #include <string.h>
-
 #include "fixins.h"
 
 enum INSTRUCTION_TYPE {
+    LDR2_ARM,   //LDR Rd,[PC,#imme]
 
     // BLX <label>
             BLX1_ARM,    //BLX imme32
@@ -60,7 +60,8 @@ enum INSTRUCTION_TYPE {
     // MOV Rd, PC
             MOV_ARM,
     // LDR Rt, <label>
-            LDR_ARM,
+            LDR1_ARM,   //LDR Rd,[PC,Rm]
+
     UNDEFINE,
 };
 
@@ -74,8 +75,9 @@ static int getInsTypeArm32(uint32_t ins) {
     if ((ins & 0xFFFF0000) == 0xE08F0000) return ADD1_ARM;  //ADD Rd,PC,Rm
     if ((ins & 0xFFF0000F) == 0xE080000F) return ADD2_ARM;  //ADD Rd,PC
 
-    if (ins & 0xFF7F000 == 0xE71F000) return LDR_ARM;  //LDR Rd,[PC,Rm]
-    if (ins & 0xFFFF000F == 0xE1A000F) return MOV_ARM;  //MOV Rd,PC
+    if ((ins & 0xFF7F000) == 0xE71F000) return LDR1_ARM;  //LDR Rd,[PC,Rm]
+    if ((ins & 0xFFBF0000) == 0xe59f0000) return LDR2_ARM;  //LDR Rd,[PC,#imme]
+    if ((ins & 0xFFFF000F) == 0xE1A000F) return MOV_ARM;  //MOV Rd,PC
 
     return UNDEFINE;
 
@@ -133,29 +135,41 @@ int fixOneInsArm32(uint32_t pc, uint32_t lr, uint32_t instruction, uint32_t *tra
         trampolineIns[trampolinePos++] = 0xE28FF000;    // ADD PC,PC,#0，清空CPU三级流水线，跳过下一条命令
         trampolineIns[trampolinePos++] = pc;
         //fix ADD end
-    } else if (insType == MOV_ARM || insType == LDR_ARM || insType == ADR1_ARM ||
+    } else if (insType == MOV_ARM || insType == LDR1_ARM || insType == LDR2_ARM ||
+               insType == ADR1_ARM ||
                insType == ADR2_ARM) {
         int rd;
         int rm;
         int r;
         int value;
+        uint32_t imme32 = 0;
         rd = (instruction & 0xF000) >> 12;
-        rm = (insType == LDR_ARM) ? (instruction & 0xF) : 16;
+        rm = (insType == LDR1_ARM) ? (instruction & 0xF) : 16;
         for (r = 12;; r--) {
             if (r != rd && r != rm)
                 break;
         }
         //LDR Rd,[PC,Rm]
-        if (insType == LDR_ARM) {
+        if (insType == LDR1_ARM) {
             trampolineIns[trampolinePos++] = 0xE52D0004 | (r << 12);    //PUSH {r};
             trampolineIns[trampolinePos++] = 0xE59F0008 | (r << 12);    //LDR r,[PC,#8]
             trampolineIns[trampolinePos++] = (instruction & 0xFFF0FFFF) | (r << 16);//改成 LDR Rd,[r,Rm]
             trampolineIns[trampolinePos++] = 0xE49D0004 | (r << 12);    //POP {r}
             trampolineIns[trampolinePos++] = 0xE28FF000;    // ADD PC,PC,#0，清空CPU三级流水线，跳过下一条命令
             trampolineIns[trampolinePos++] = pc;
-        }//TODO:have problem
+        }//TODO:have bugs(U flag)
+            //LDR Rd,[PC,#imme]
+        else if (insType == LDR2_ARM) {
+            imme32 = instruction & 0xFFF;
+            trampolineIns[trampolinePos++] = 0xE52D0004 | (r << 12);    //PUSH {r};
+            trampolineIns[trampolinePos++] = 0xE59F0008 | (r << 12);    //LDR r,[PC,#8]
+            trampolineIns[trampolinePos++] =
+                    (instruction & 0xFFF0FFFF) | (r << 16);//改成 LDR Rd,[r,#imme]
+            trampolineIns[trampolinePos++] = 0xE49D0004 | (r << 12);    //POP {r}
+            trampolineIns[trampolinePos++] = 0xE28FF000;    // ADD PC,PC,#0，清空CPU三级流水线，跳过下一条命令
+            trampolineIns[trampolinePos++] = pc;
+        }
         else if (insType == ADR1_ARM || insType == ADR2_ARM) {
-            uint32_t imme32;
             imme32 = instruction & 0xFFF;
             value = (insType == ADR1_ARM) ? (pc + imme32 + 8) : (pc - imme32 + 8);
             trampolineIns[trampolinePos++] = 0xE51F0000 | (r << 12);    // LDR Rr, [PC]

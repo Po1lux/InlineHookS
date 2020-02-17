@@ -6,8 +6,11 @@
 
 extern "C"
 int test(int a,int b);
-static unsigned int uTimeCounter = 0x1;
 
+/**
+ * 指令级hook测试样例，寄存器修改 uTimeCounter 的值大于0x20
+ */
+static unsigned int uTimeCounter = 0x1;
 extern "C"
 JNIEXPORT jstring JNICALL Java_com_pollux_inlinehooks_MainActivity_getTikNum
 (JNIEnv *env, jclass jclazz){
@@ -21,11 +24,14 @@ JNIEXPORT jstring JNICALL Java_com_pollux_inlinehooks_MainActivity_getTikNum
     }
 }
 
+/**
+ * 函数级hook测试样例，hook test 函数的返回值
+ */
 extern "C"
 JNIEXPORT void JNICALL Java_com_pollux_inlinehooks_MainActivity_hookRet
         (JNIEnv *env, jclass jclazz){
     int a = test(2,4);
-    LOGI("value a: %d",a);
+    LOGI("aaaaa:%d", a);
 }
 
 extern "C"

@@ -13,6 +13,9 @@ typedef struct sHookInfo{
     void *pHookAddr;
     void *pShellcodeAddr;
     void (* onCallBack)(struct pt_regs *);
+
+//    void (* beforeHook)(struct pt_regs *);
+//    void (* afterHook)(struct pt_regs *);
     void **ppOldFuncAddr;
     BYTE backupOpcode[OPCODEMAXLEN];
 }HOOKINFO;
