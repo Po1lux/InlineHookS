@@ -205,12 +205,12 @@ bool HookArm32(HOOKINFO *hookinfo)
 {
     bool bRet = false;
 
-    while(1)
-    {
+    //while(1)
+    //{
         if(hookinfo == NULL)
         {
             LOGI("pstInlineHook is null.");
-            break;
+            //break;
         }
 
         //设置ARM下inline hook的基础信息
@@ -218,23 +218,24 @@ bool HookArm32(HOOKINFO *hookinfo)
         if(initArm32HookInfo(hookinfo) == false)
         {
             LOGI("Init Arm HookInfo fail.");
-            break;
+            //break;
         }
 
-        //构造stub，功能是保存寄存器状态，同时跳转到目标函数，然后跳转回原函数
-        //需要目标地址，返回stub地址，同时还有old指针给后续填充
+    //------生成shellcode跳板
+    // 1、申请内存放入shellcode
+    // 2、保存shellcode地址和oldfunc的地址到到hookinfo
+    // 3、将newfunc填入shellcode
         if(buildShellcodeStub(hookinfo) == false)
         {
             LOGI("BuildStub fail.");
-            break;
+            //break;
         }
 
-        //负责重构原函数头，功能是修复指令，构造跳转回到原地址下
-        //需要原函数地址
+    //------生成指令备份跳板，用来跳回hook处
         if(buildOldFuncStub(hookinfo) == false)
         {
             LOGI("BuildOldFunction fail.");
-            break;
+            //break;
         }
 
         //负责重写原函数头，功能是实现inline hook的最后一步，改写跳转
@@ -242,11 +243,11 @@ bool HookArm32(HOOKINFO *hookinfo)
         if(rebuildHookAddrOpcode(hookinfo) == false)
         {
             LOGI("RebuildHookAddress fail.");
-            break;
+            //break;
         }
         bRet = true;
-        break;
-    }
+    //break;
+    //}
 
     return bRet;
 }
@@ -300,3 +301,4 @@ void * GetModuleBaseAddr(pid_t pid, char* pszModuleName)
 //
 //
 //}
+

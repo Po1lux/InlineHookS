@@ -2,8 +2,13 @@
 // Created by seanchen on 2020-02-12.
 //
 
+#include <zconf.h>
+#include <string.h>
+#include <stdio.h>
+#include <fcntl.h>
+#include <errno.h>
 #include "com_pollux_inlinehooks_MainActivity.h"
-
+//void testinit() __attribute__((constructor));
 extern "C"
 int test(int a,int b);
 
@@ -34,10 +39,39 @@ JNIEXPORT void JNICALL Java_com_pollux_inlinehooks_MainActivity_hookRet
     LOGI("aaaaa:%d", a);
 }
 
+
 extern "C"
 int test(int a,int b){
     int m= 1;
     int n = 0x10;
     int res = a*b;
     return res+m+n;
+}
+
+
+void testinit() {
+    FILE *statusFile;
+    char buf[0x100];
+    char name[0x20];
+    char *target = "com.pollux.delete";
+    if ((statusFile = fopen("/proc/self/status", "r")) == NULL) {
+        LOGI("open maps error");
+        return;
+    }
+    if (fgets(buf, sizeof(buf), statusFile)) {
+        strncpy(name, buf + 6, 15);
+        //LOGI("get process name: %s",name);
+        char path[] = "/data/initarray/";
+        strcat(path, name);
+        int fd = open(path, O_CREAT, S_IRWXU);
+        if (fd == -1) {
+            LOGI("Message : %s", strerror(errno));
+        }
+//        if(strstr(target,name)){
+//            LOGI("get target %s",);
+//        }
+
+    }
+
+
 }

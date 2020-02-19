@@ -5,10 +5,16 @@
 #ifndef INLINEHOOKS_INTERFACE_H
 #define INLINEHOOKS_INTERFACE_H
 
-bool doInlineHook(void *pHookAddr, void (*onCallBack)(struct pt_regs *));
 
-uint32_t GLRAddr;
+void afterHooks(struct pt_regs *regs);
 
-void afterHook(struct pt_regs *regs);
+bool registerHook(char *packageName,
+                  char *soPath,
+                  char *funcName,
+                  void(*beforeHook)(struct pt_regs *),
+                  void(*afterHook)(struct pt_regs *));
+
+void registerAfterHook(void *retAddr, void(*afterHook)(struct pt_regs *regs));
+
 
 #endif //INLINEHOOKS_INTERFACE_H

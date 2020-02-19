@@ -92,7 +92,7 @@ int fixOneInsArm32(uint32_t pc, uint32_t lr, uint32_t instruction, uint32_t *tra
     insType = getInsTypeArm32(instruction);
     trampolinePos = 0;
     if (insType == BX_ARM || insType == BLX1_ARM || insType == BL_ARM || insType == B_ARM) {
-        int32_t imme32;
+        int imme32;
         uint32_t x;
         int topBit;
         //改成通过LDR PC实现函数跳转，手动填写LR为备份ins的下一个地址
@@ -104,12 +104,12 @@ int fixOneInsArm32(uint32_t pc, uint32_t lr, uint32_t instruction, uint32_t *tra
         if (insType == B_ARM || insType == BL_ARM || insType == BLX1_ARM) {
             x = (instruction & 0xFFFFFF); //取指令中的24bit立即数
             topBit = x >> 23;
-            imme32 = topBit ? ((x << 2) | 0xFC000000) : x;  //若是负数，从24位符号整数转成32位整数
+            imme32 = topBit ? ((x << 2) | 0xFC000000) : x << 2;  //若是负数，从24位符号整数转成32位整数
             //对于BLX，要设置bit[1] = H，切换成thumb模式，所以bit[0] = 1
             imme32 = (insType == BLX1_ARM) ?
                      (imme32 | (instruction & 0x1000000) >> 23) + 1
                                            : imme32;
-            value = imme32 + pc + 8;
+            value = imme32 + pc;
         } else {
             value = pc;
         }
@@ -145,7 +145,7 @@ int fixOneInsArm32(uint32_t pc, uint32_t lr, uint32_t instruction, uint32_t *tra
         uint32_t imme32 = 0;
         rd = (instruction & 0xF000) >> 12;
         rm = (insType == LDR1_ARM) ? (instruction & 0xF) : 16;
-        for (r = 12;; r--) {
+        for (r = 11;; r--) {
             if (r != rd && r != rm)
                 break;
         }
