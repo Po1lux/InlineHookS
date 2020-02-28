@@ -32,7 +32,8 @@ void beforeHook(struct pt_regs *regs, uint32_t LRValue) {
 void mainfunc() {
     //hook native.cpp中的test函数
     char *packageName = "com.pollux.delete";
-    char *soPath = "/data/app/com.pollux.inlinehooks-1/lib/arm/libnative.so";
+    //TODO: soPath存在版本号如，xxx-1，如何自动定位so文件，而不是填充目录？
+    char *soPath = "/data/app/com.pollux.inlinehooks-2/lib/arm/libnative.so";
     char *funcName = "test";
 
     bool res = registerHook(packageName, soPath, funcName, beforeHook, afterHook);

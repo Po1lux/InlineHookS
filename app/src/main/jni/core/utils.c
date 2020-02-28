@@ -10,6 +10,7 @@
 #include <zconf.h>
 #include <sys/mman.h>
 #include <elf.h>
+#include <errno.h>
 
 
 #define __arm__
@@ -30,7 +31,7 @@ typedef struct ctxInfo {
     void *dynstr;       //动态字串表
     void *dynsym;       //动态符号表
     int symsNum;          //符号个数
-    off_t off;         //VA与文件中位置的差
+    //off_t off;         //VA与文件中位置的差
 } CTXINFO;
 
 void *my_dlopen(char *libPath) {
@@ -64,7 +65,7 @@ void *my_dlopen(char *libPath) {
     fclose(maps);
 //打开so文件
     if ((fd = open(libPath, O_RDONLY) )== -1) {
-        LOGI("open so error");
+        LOGI("open so error ：%s", strerror(errno));
         return NULL;
     }
 //获得文件大小
@@ -75,13 +76,15 @@ void *my_dlopen(char *libPath) {
         close(fd);
         return NULL;
     }
+//关闭so文件
     close(fd);
+
     ctx = (CTXINFO *) calloc(1, sizeof(CTXINFO));
-    ctx->execAddr = addr;
-    shtoff = elf->e_phoff; //节头表偏移
-    shtNum = elf->e_shnum;
-    shtSize = elf->e_shentsize;
-    shtAddr = ((void *) elf) + elf->e_shoff;
+    ctx->execAddr = addr;   //so执行段地址
+    shtoff = elf->e_shoff; //节头表偏移
+    shtNum = elf->e_shnum;  //节头表表项数量
+    shtSize = elf->e_shentsize; //节头表每个表项的大小
+    shtAddr = ((void *) elf) + elf->e_shoff;    //节头表逻辑地址
 
     for (uint32_t i = 0; i < shtNum; i++, shtAddr += shtSize) {
         Elf_Shdr *sh = (Elf_Shdr *)shtAddr;
@@ -90,19 +93,25 @@ void *my_dlopen(char *libPath) {
                 ctx->dynsym = calloc(1, sh->sh_size);
                 memcpy(ctx->dynsym, ((void *) elf + sh->sh_offset), sh->sh_size);
                 ctx->symsNum = sh->sh_size / sizeof(Elf_Sym);
-                ctx->off = sh->sh_addr - sh->sh_offset;
+
                 break;
             case SHT_STRTAB://3
                 ctx->dynstr = calloc(1, sh->sh_size);
                 memcpy(ctx->dynstr, (void *) elf + sh->sh_offset, sh->sh_size);
                 break;
-            case SHT_PROGBITS:
-                break;
+                //当前节区为程序定义节区：program defined information
+//            case SHT_PROGBITS:
+//                if(!ctx->dynstr || !ctx->dynsym) break;
+//                //获得偏移，在动态链接库文件中 sh->sh_addr = sh->sh_offset
+//                ctx->off = sh->sh_addr - sh->sh_offset;
+//                break;
+                //在动态链接库文件中 sh->sh_addr = sh->sh_offset
         }
         if (ctx->dynstr && ctx->dynsym) {
             break;
         }
     }
+    //关闭内存映射
     munmap(elf,size);
     return ctx;
 }
@@ -118,10 +127,10 @@ void *my_dlsym(void *ctxStruct,char *symName){
     for(i=0;i<ctx->symsNum;i++,sym++){
         char *name = dynstrAddr+sym->st_name;
         if(strcmp(name,symName)==0){
-            void *res = ctx->execAddr+sym->st_value-ctx->off;
+//            void *res = ctx->execAddr+sym->st_value-ctx->off;
+            void *res = ctx->execAddr + sym->st_value;
             return res;
         }
     }
     return NULL;
-
 }
