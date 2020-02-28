@@ -8,10 +8,11 @@
 
 void afterHooks(struct pt_regs *regs);
 
+//注册hook，生成hook跳转代码
 bool registerHook(char *packageName,
                   char *soPath,
                   char *funcName,
-                  void(*beforeHook)(struct pt_regs *),
+                  void(*beforeHook)(struct pt_regs *, uint32_t LRValue),
                   void(*afterHook)(struct pt_regs *));
 
 void registerAfterHook(void *retAddr, void(*afterHook)(struct pt_regs *regs));

@@ -29,6 +29,9 @@ public class MainActivity extends AppCompatActivity {
                 updateText();
             }
         });
+
+
+        //加载interface库，即开始hook
         bt1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -37,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        //触发函数，测试hook函数返回值是否成功
         bt2_treger.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

@@ -56,7 +56,7 @@
 //    doInlineHook((void *) uiHookAddr, EvilHookStubFunctionForIBored);
 //
 //}
-
+bool initialHook(char *packageName);
 
 bool doInlineHook(void *pHookAddr, void (*onCallBack)(struct pt_regs *)) {
     bool bRet = false;
@@ -79,21 +79,40 @@ bool doInlineHook(void *pHookAddr, void (*onCallBack)(struct pt_regs *)) {
     return true;
 }
 
-
+/**
+ * 1、查看hook目标是否正确
+ * 2、获得函数符号地址
+ * 3、调用doInlineHook实现hook
+ * @param packageName
+ * @param soPath
+ * @param funcName
+ * @param beforeHook
+ * @param afterHook
+ * @return
+ */
 bool registerHook(char *packageName,
                   char *soPath,
                   char *funcName,
-                  void(*beforeHook)(struct pt_regs *),
+                  void(*beforeHook)(struct pt_regs *, uint32_t LRValue),
                   void(*afterHook)(struct pt_regs *)) {
 
+
+    //通过/proc/self/status查看进程名是否等于包名，若等于则继续hook
+//    if(initialHook(packageName)==false){
+//        return false;
+//    }
+
+    //TODO:自映射加载elf，不稳定，有时获得的地址为0，待修复，暂时不用
+    //---------------------自映射加载elf，不稳定，暂时不用
     //bool istarget = initialHook(packageName);
     //void *ctx = my_dlopen("/data/app/com.pollux.inlinehooks-1/lib/arm/libnative.so");
     //void *ptr = my_dlsym(ctx, funcName);
+    //----------------------------------
 
-    //--------------test
+    //--------------自映射加载elf的临时替代代码，目标libnative.so中的test函数
     void *pModuleBaseAddr = GetModuleBaseAddr(-1, "libnative.so");
     uint32_t uiHookAddr = (uint32_t) pModuleBaseAddr + 0xb8c;
-    //-------------
+    //----------------------------------
     doInlineHook((void *) uiHookAddr, beforeHook);
 }
 

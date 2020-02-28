@@ -35,7 +35,7 @@ JNIEXPORT jstring JNICALL Java_com_pollux_inlinehooks_MainActivity_getTikNum
 extern "C"
 JNIEXPORT void JNICALL Java_com_pollux_inlinehooks_MainActivity_hookRet
         (JNIEnv *env, jclass jclazz){
-    int a = test(2,4);
+    int a = test(2, 4);//25
     LOGI("aaaaa:%d", a);
 }
 
