@@ -33,4 +33,10 @@
         android:layout_height="wrap_content"
         android:text = "treger" />
 
+    <Button
+        android:id="@+id/bt3_ptrace"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="ptrace" />
+
 </LinearLayout>

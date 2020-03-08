@@ -8,9 +8,40 @@
 #include <fcntl.h>
 #include <errno.h>
 #include "com_pollux_inlinehooks_MainActivity.h"
+
+#define TAG "cs"
+
+#include <android/log.h>
+#include <stdlib.h>
+#include <asm/ptrace.h>
+#include <sys/ptrace.h>
+#include <sys/wait.h>
+#include <dirent.h>
+
+#define CPSR_T_MASK        ( 1u << 5 )
+#define LOGI(...) __android_log_print(ANDROID_LOG_DEBUG,TAG,__VA_ARGS__)
 //void testinit() __attribute__((constructor));
 extern "C"
 int test(int a,int b);
+
+
+
+extern "C"
+JNIEXPORT void JNICALL Java_com_pollux_inlinehooks_MainActivity_ptracetest
+        (JNIEnv *env, jclass clazz) {
+
+    pid_t target_pid;
+}
+
+
+
+
+
+
+
+
+
+
 
 /**
  * 指令级hook测试样例，寄存器修改 uTimeCounter 的值大于0x20
@@ -36,7 +67,7 @@ extern "C"
 JNIEXPORT void JNICALL Java_com_pollux_inlinehooks_MainActivity_hookRet
         (JNIEnv *env, jclass jclazz){
     int a = test(2, 4);//25
-    LOGI("aaaaa:%d", a);
+    LOGI("result: %d", a);
 }
 
 
